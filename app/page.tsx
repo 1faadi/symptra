@@ -5,7 +5,7 @@ import { useRef, useEffect, useState } from 'react';
 import { Send, Bot, Loader2, Stethoscope, Building2, Sparkles } from 'lucide-react';
 
 export default function ChatPage() {
-  const [selectedDoc, setSelectedDoc] = useState('medical-guidelines');
+  const [selectedDoc, setSelectedDoc] = useState('dengue');
 
   const {
     messages,
@@ -117,7 +117,7 @@ export default function ChatPage() {
               onChange={(e) => setSelectedDoc(e.target.value)}
               className="appearance-none bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-medium text-gray-700 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 cursor-pointer"
             >
-              <option value="medical-guidelines" className="flex items-center">
+              <option value="dengue" className="flex items-center">
                 🦟 Dengue Specialist
               </option>
               <option value="company-policy">
@@ -138,7 +138,7 @@ export default function ChatPage() {
         {isEmpty && (
           <div className="text-center mt-20">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              {selectedDoc === 'medical-guidelines' ? (
+              {selectedDoc === 'dengue' ? (
                 <Stethoscope className="w-10 h-10 text-blue-600" />
               ) : (
                 <Building2 className="w-10 h-10 text-blue-600" />
@@ -148,7 +148,7 @@ export default function ChatPage() {
               How can I help you today?
             </h2>
             <p className="text-gray-500 max-w-md mx-auto">
-              Ask me about {selectedDoc === 'medical-guidelines' ? 'dengue symptoms, treatments, or prevention' : 'company policies and procedures'}
+              Ask me about {selectedDoc === 'dengue' ? 'dengue symptoms, treatments, or prevention' : 'company policies and procedures'}
             </p>
           </div>
         )}
@@ -215,7 +215,7 @@ export default function ChatPage() {
               className="w-full px-6 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed pr-16 text-gray-800 placeholder-gray-500 bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 text-sm"
               value={input}
               onChange={handleInputChange}
-              placeholder={selectedDoc === 'medical-guidelines' 
+              placeholder={selectedDoc === 'dengue' 
                 ? "Ask about dengue symptoms, prevention, or treatment..." 
                 : "Ask about company policies or procedures..."
               }

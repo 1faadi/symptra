@@ -1,21 +1,22 @@
 import * as fs from 'fs';
 import pdf from 'pdf-parse';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { TogetherAIEmbeddings } from '@langchain/community/embeddings/togetherai';
 import { QdrantVectorStore } from '@langchain/community/vectorstores/qdrant';
 import { QdrantClient } from '@qdrant/js-client-rest';
 import 'dotenv/config';
+
+import { TogetherBGEEmbeddings } from '../lib/embeddings/bgeTogetherEmbeddings'; // ✅ custom embedding class
 
 async function loadAndStorePDF(filename: string) {
   const filePath = `vectorstore/${filename}`;
   const collectionName = filename.replace('.pdf', '');
 
   if (!fs.existsSync(filePath)) {
-    console.error(`\u274C File not found: ${filePath}`);
+    console.error(`❌ File not found: ${filePath}`);
     return;
   }
 
-  console.log(`\ud83d\udcc4 Loading: ${filePath} into collection: "${collectionName}"`);
+  console.log(`📄 Loading: ${filePath} into collection: "${collectionName}"`);
 
   const dataBuffer = fs.readFileSync(filePath);
   const pdfData = await pdf(dataBuffer);
@@ -28,12 +29,12 @@ async function loadAndStorePDF(filename: string) {
 
   const docs = await splitter.createDocuments([rawText]);
 
-  console.log(`\u2702\ufe0f Split into ${docs.length} chunks`);
-  console.log("\ud83e\uddf9 Sample chunk:", docs[0]?.pageContent.slice(0, 200));
+  console.log(`✂️ Split into ${docs.length} chunks`);
+  console.log("🧩 Sample chunk:", docs[0]?.pageContent.slice(0, 200));
 
-  const embeddings = new TogetherAIEmbeddings({
+  const embeddings = new TogetherBGEEmbeddings({
     apiKey: process.env.TOGETHER_API_KEY!,
-    modelName: 'BAAI/bge-large-en-v1.5',
+    model: 'BAAI/bge-large-en-v1.5',
   });
 
   const client = new QdrantClient({
@@ -46,12 +47,12 @@ async function loadAndStorePDF(filename: string) {
     collectionName,
   });
 
-  console.log(`\u2705 Stored "${filename}" as collection: "${collectionName}"`);
+  console.log(`✅ Stored "${filename}" as collection: "${collectionName}"`);
 }
 
 const fileArg = process.argv[2];
 if (!fileArg) {
-  console.error('\u274C Usage: pnpm tsx scripts/load.ts yourfile.pdf');
+  console.error('❌ Usage: pnpm tsx scripts/load.ts yourfile.pdf');
   process.exit(1);
 }
 
