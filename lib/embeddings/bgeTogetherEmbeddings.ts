@@ -4,31 +4,34 @@ import Together from 'together-ai';
 export class TogetherBGEEmbeddings extends Embeddings {
   model: string;
   client: any;
+  cache: Map<string, number[]>;
 
   constructor({ model, apiKey }: { model: string; apiKey: string }) {
-    super({}); // ✅ Provide an empty config object
+    super({});
     this.model = model;
     this.client = new Together({ apiKey });
+    this.cache = new Map();
   }
 
   async embedDocuments(texts: string[]): Promise<number[][]> {
-    const results = await Promise.all(
-      texts.map(async (text) => {
-        const response = await this.client.embeddings.create({
-          model: this.model,
-          input: text,
-        });
-        return response.data[0].embedding;
-      })
-    );
-    return results;
+    const response = await this.client.embeddings.create({
+      model: this.model,
+      input: texts, // ✅ Batch input
+    });
+
+    return response.data.map((res: any) => res.embedding);
   }
 
   async embedQuery(text: string): Promise<number[]> {
+    if (this.cache.has(text)) return this.cache.get(text)!;
+
     const response = await this.client.embeddings.create({
       model: this.model,
       input: text,
     });
-    return response.data[0].embedding;
+
+    const embedding = response.data[0].embedding;
+    this.cache.set(text, embedding);
+    return embedding;
   }
 }

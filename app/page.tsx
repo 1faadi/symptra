@@ -5,14 +5,15 @@ import { useRef, useEffect, useState } from 'react';
 import { Send, Bot, Loader2, Stethoscope, Building2, Sparkles } from 'lucide-react';
 
 export default function ChatPage() {
-  const [selectedDoc, setSelectedDoc] = useState('dengue');
+  const [selectedDoc, setSelectedDoc] = useState('company-policy'); // Changed default to company-policy
 
   const {
     messages,
     input,
     handleInputChange,
     isLoading,
-    append
+    append,
+    setInput // Added setInput to clear the input
   } = useChat();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -42,13 +43,17 @@ export default function ChatPage() {
     e.preventDefault();
     if (!input.trim()) return;
 
+    const currentInput = input; // Store current input
     setErrorMessage(null);
     setIsTyping(true);
+
+    // Clear input immediately after submission
+    setInput('');
 
     // 1. Add user message immediately
     await append({
       role: 'user',
-      content: input
+      content: currentInput
     });
 
     try {
@@ -56,7 +61,7 @@ export default function ChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, { role: 'user', content: input }],
+          messages: [...messages, { role: 'user', content: currentInput }],
           selectedDoc
         })
       });
@@ -101,11 +106,14 @@ export default function ChatPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                AI Knowledge Assistant
+                {selectedDoc === 'company-policy' ? 'BXTrack Policy Guider' : 'Dengue Medical Assistant'}
               </h1>
               <p className="text-sm text-gray-600 flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-amber-500" />
-                Your intelligent companion for medical guidance & policy support
+                {selectedDoc === 'company-policy' 
+                  ? 'Your comprehensive guide to company policies & procedures'
+                  : 'Expert medical guidance for dengue-related queries'
+                }
               </p>
             </div>
           </div>
@@ -117,11 +125,11 @@ export default function ChatPage() {
               onChange={(e) => setSelectedDoc(e.target.value)}
               className="appearance-none bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-medium text-gray-700 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 cursor-pointer"
             >
-              <option value="dengue" className="flex items-center">
-                🦟 Dengue Specialist
-              </option>
               <option value="company-policy">
                 🏢 Company Policy
+              </option>
+              <option value="dengue" className="flex items-center">
+                🦟 Dengue Specialist
               </option>
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -138,17 +146,17 @@ export default function ChatPage() {
         {isEmpty && (
           <div className="text-center mt-20">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              {selectedDoc === 'dengue' ? (
-                <Stethoscope className="w-10 h-10 text-blue-600" />
-              ) : (
+              {selectedDoc === 'company-policy' ? (
                 <Building2 className="w-10 h-10 text-blue-600" />
+              ) : (
+                <Stethoscope className="w-10 h-10 text-blue-600" />
               )}
             </div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-2">
               How can I help you today?
             </h2>
             <p className="text-gray-500 max-w-md mx-auto">
-              Ask me about {selectedDoc === 'dengue' ? 'dengue symptoms, treatments, or prevention' : 'company policies and procedures'}
+              Ask me about {selectedDoc === 'company-policy' ? 'company policies and procedures' : 'dengue symptoms, treatments, or prevention'}
             </p>
           </div>
         )}
@@ -215,9 +223,9 @@ export default function ChatPage() {
               className="w-full px-6 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed pr-16 text-gray-800 placeholder-gray-500 bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 text-sm"
               value={input}
               onChange={handleInputChange}
-              placeholder={selectedDoc === 'dengue' 
-                ? "Ask about dengue symptoms, prevention, or treatment..." 
-                : "Ask about company policies or procedures..."
+              placeholder={selectedDoc === 'company-policy' 
+                ? "Ask about company policies or procedures..." 
+                : "Ask about dengue symptoms, prevention, or treatment..."
               }
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -250,7 +258,7 @@ export default function ChatPage() {
         <div className="mt-4 text-center">
           <p className="text-xs text-gray-500 flex items-center justify-center gap-2">
             <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse inline-block"></span>
-            AI Knowledge Assistant • Always verify medical or policy info with the relevant authority
+            {selectedDoc === 'company-policy' ? 'BXTrack Policy Guider' : 'Dengue Medical Assistant'} • Always verify medical or policy info with the relevant authority
           </p>
         </div>
       </div>

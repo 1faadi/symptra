@@ -19,6 +19,7 @@
     "ai": "^4.3.19",
     "axios": "^1.10.0",
     "chromadb": "^3.0.9",
+    "clsx": "^2.1.1",
     "dotenv": "^17.2.0",
     "langchain": "^0.3.30",
     "lucide-react": "^0.525.0",
@@ -26,6 +27,7 @@
     "pdf-parse": "^1.1.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "tailwind-merge": "^3.3.1",
     "together-ai": "^0.20.0"
   },
   "devDependencies": {
