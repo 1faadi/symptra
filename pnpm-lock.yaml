@@ -3353,6 +3353,7 @@ packages:
   weaviate-client@3.7.0:
     resolution: {integrity: sha512-q888bkHWJBdPgPHFoIc2GiFig42WbxHOgiSBVYYQUqJGA9VszaOpU/7Ip1fVATyyVjhjzRDvMebmRltirvpfMg==}
     engines: {node: '>=18.0.0'}
+    deprecated: This release contains breaking changes. Consider upgrading to v3.8.0 or later to avoid them.
 
   web-streams-polyfill@4.0.0-beta.3:
     resolution: {integrity: sha512-QW95TCTaHmsYfHDybGMwO5IJIM93I/6vTRk+daHTWFPhwh+C8Cg7j7XyKrwrj8Ib6vYXe0ocYNrmzY4xAAN6ug==}

@@ -11,30 +11,33 @@ async function loadAndStorePDF(filename: string) {
   const collectionName = filename.replace('.pdf', '');
 
   if (!fs.existsSync(filePath)) {
-    console.error(`❌ File not found: ${filePath}`);
+    console.error(`\u274C File not found: ${filePath}`);
     return;
   }
 
-  console.log(`📄 Loading file: ${filePath} into collection: ${collectionName}`);
+  console.log(`\ud83d\udcc4 Loading: ${filePath} into collection: "${collectionName}"`);
 
   const dataBuffer = fs.readFileSync(filePath);
   const pdfData = await pdf(dataBuffer);
   const rawText = pdfData.text;
 
   const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 200,
+    chunkSize: 500,
+    chunkOverlap: 100,
   });
 
   const docs = await splitter.createDocuments([rawText]);
 
+  console.log(`\u2702\ufe0f Split into ${docs.length} chunks`);
+  console.log("\ud83e\uddf9 Sample chunk:", docs[0]?.pageContent.slice(0, 200));
+
   const embeddings = new TogetherAIEmbeddings({
     apiKey: process.env.TOGETHER_API_KEY!,
-    modelName: 'togethercomputer/m2-bert-80M-32k-retrieval',
+    modelName: 'BAAI/bge-large-en-v1.5',
   });
 
   const client = new QdrantClient({
-    url: process.env.QDRANT_URL!, // ✅ From .env
+    url: process.env.QDRANT_URL!,
     apiKey: process.env.QDRANT_API_KEY!,
   });
 
@@ -43,13 +46,12 @@ async function loadAndStorePDF(filename: string) {
     collectionName,
   });
 
-  console.log(`✅ Successfully stored ${filename} as collection: ${collectionName}`);
+  console.log(`\u2705 Stored "${filename}" as collection: "${collectionName}"`);
 }
 
-// CLI Entry Point
 const fileArg = process.argv[2];
 if (!fileArg) {
-  console.error('❌ Please provide a PDF file name.\nUsage: pnpm tsx scripts/load.ts dengue.pdf');
+  console.error('\u274C Usage: pnpm tsx scripts/load.ts yourfile.pdf');
   process.exit(1);
 }
 

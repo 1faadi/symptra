@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     });
 
     const embeddings = new TogetherAIEmbeddings({
-      modelName: 'togethercomputer/m2-bert-80M-32k-retrieval',
+      modelName: 'BAAI/bge-large-en-v1.5',
       apiKey: process.env.TOGETHER_API_KEY!,
     });
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       client,
     });
 
-    const retriever = vectorStore.asRetriever({ k: 4 });
+    const retriever = vectorStore.asRetriever({ k: 8 });
 
     const model = new ChatTogetherAI({
       modelName: 'togethercomputer/llama-3-8b-chat',
@@ -46,19 +46,15 @@ export async function POST(req: Request) {
       maxTokens: 1024,
     });
 
-    // ✅ Create custom prompt with instruction to answer only based on context
     const prompt = ChatPromptTemplate.fromMessages([
       [
         "system",
-        `You are a helpful assistant. Only answer based on the context provided. 
-If the answer is not explicitly present in the context, respond with:
-"I don't know."`,
+        `You are a helpful assistant. Use the provided context to answer the following question as accurately as possible.\nIf the exact answer is not present, try to infer it from relevant words, paraphrases, or synonyms in the context.\nOnly respond if your answer is reasonably supported by the context. If not, say: \u201cI don\u2019t know.\u201d`,
       ],
       new MessagesPlaceholder("chat_history"),
       ["human", "Context:\n{context}\n\nQuestion:\n{question}"],
     ]);
 
-    // ✅ Compose custom chain using LCEL
     const chain = RunnableSequence.from([
       {
         context: async (input) => {
@@ -87,7 +83,7 @@ If the answer is not explicitly present in the context, respond with:
 
     return new NextResponse(stream);
   } catch (err) {
-    console.error("❌ Chat error:", err);
+    console.error("\u274C Chat error:", err);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
