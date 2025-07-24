@@ -35,9 +35,9 @@ export default function ChatPage() {
     }
   }, [input, errorMessage]);
 
-  useEffect(() => {
-    setIsTyping(isLoading);
-  }, [isLoading]);
+  // useEffect(() => {
+  //   setIsTyping(isLoading);
+  // }, [isLoading]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +67,6 @@ export default function ChatPage() {
       });
 
       if (!response.ok || !response.body) throw new Error('No response body');
-
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let done = false;
@@ -79,7 +78,7 @@ export default function ChatPage() {
         const chunk = decoder.decode(value);
         assistantMessage += chunk;
       }
-
+      setIsTyping(false)
       await append({
         role: 'assistant',
         content: assistantMessage

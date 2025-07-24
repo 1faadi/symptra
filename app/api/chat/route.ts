@@ -26,78 +26,83 @@ const model = new ChatTogetherAI({
   maxTokens: 1024,
 });
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { messages, selectedDoc } = body;
+  export async function POST(req: Request) {
+    try {
+      const body = await req.json();
+      const { messages, selectedDoc } = body;
 
-    const historyMessages = messages.slice(0, -1);
-    const currentMessage = messages[messages.length - 1];
+      const historyMessages = messages.slice(0, -1);
+      const currentMessage = messages[messages.length - 1];
 
-    const chatHistory = historyMessages.map((msg: any) =>
-      msg.role === "user"
-        ? new HumanMessage(msg.content)
-        : new AIMessage(msg.content)
-    );
+      const chatHistory = historyMessages.map((msg: any) =>
+        msg.role === "user"
+          ? new HumanMessage(msg.content)
+          : new AIMessage(msg.content)
+      );
 
-    const vectorStore = await QdrantVectorStore.fromExistingCollection(
-      embeddings,
-      {
-        collectionName: selectedDoc,
-        client: qdrantClient,
-      }
-    );
+      const vectorStore = await QdrantVectorStore.fromExistingCollection(
+        embeddings,
+        {
+          collectionName: selectedDoc,
+          client: qdrantClient,
+        }
+      );
 
-    const retriever = vectorStore.asRetriever({ k: 4 });
+      const retriever = vectorStore.asRetriever({ k: 4 });
 
-    const prompt = ChatPromptTemplate.fromMessages([
-      [
-        "system",
-        `You are a helpful assistant. Use the provided context to answer the following question as accurately as possible.
-If the answer is not supported by the context, say: "I don't know." Do not answer from general knowledge.`,
-      ],
-      new MessagesPlaceholder("chat_history"),
-      ["human", "Context:\n{context}\n\nQuestion:\n{question}"],
-    ]);
+      const prompt = ChatPromptTemplate.fromMessages([
+        [
+          "system",
+          `You are a helpful assistant. Use the provided context to answer the following question as accurately as possible.
+  If the answer is not supported by the context, say: "I don't know." Do not answer from general knowledge.`,
+        ],
+        new MessagesPlaceholder("chat_history"),
+        ["human", "Context:\n{context}\n\nQuestion:\n{question}"],
+      ]);
 
-    const chain = RunnableSequence.from([
-      {
-        context: async (input) => {
-          const docs = await retriever.getRelevantDocuments(input.question);
-          return docs.map((doc) => doc.pageContent).join("\n\n");
+      const chain = RunnableSequence.from([
+        {
+          context: async (input) => {
+            const docs = await retriever.getRelevantDocuments(input.question);
+            const context = docs.length
+              ? docs.map((doc) => doc.pageContent).join("\n\n")
+              : "No relevant documents found."; // ✅ Use fallback
+            return context; // ✅ Return this
+          },          
+          question: (input) => input.question,
+          chat_history: (input) => input.chat_history,
         },
-        question: (input) => input.question,
-        chat_history: (input) => input.chat_history,
-      },
-      prompt,
-      model,
-      new StringOutputParser(),
-    ]);
-
-    const stream = await chain.stream({
-      question: currentMessage.content,
-      chat_history: chatHistory,
-    });
-
-    const textStream = new TextEncoderStream();
-    const writer = textStream.writable.getWriter();
-
-    (async () => {
-      for await (const chunk of stream) {
-        await writer.write(chunk);
+        prompt,
+        model,
+        new StringOutputParser(),
+      ]);
+      if (!currentMessage?.content || typeof currentMessage.content !== "string") {
+        return new Response("Invalid input: missing user message.", { status: 400 });
       }
-      await writer.close();
-    })();
+      
 
-    return new Response(textStream.readable, {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-      },
-    });
-  } catch (error) {
-    console.error("❌ RAG Error:", error);
-    return new Response(JSON.stringify({ error: "Something went wrong" }), {
-      status: 500,
-    });
+      const stream = await chain.stream({
+        question: currentMessage.content,
+        chat_history: chatHistory,
+      });
+      const textStream = new TextEncoderStream();
+      const writer = textStream.writable.getWriter();
+
+      (async () => {
+        for await (const chunk of stream) {
+          await writer.write(chunk);
+        }
+        await writer.close();
+      })();
+
+      return new Response(textStream.readable, {
+        headers: {
+      'content-type': 'application/json; charset=utf-8',      },
+      });
+    } catch (error) {
+      console.error("❌ RAG Error:", error);
+      return new Response(JSON.stringify({ error: error }), {
+        // status: erro,
+      });
+    }
   }
-}
