@@ -11,9 +11,10 @@ export default function ChatPage() {
 
   const { messages, input, handleInputChange, isLoading, append, setInput } = useChat();
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+const messagesEndRef = useRef<HTMLDivElement>(null);
+const inputRef = useRef<HTMLTextAreaElement>(null); // ← Fixed type
+const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const [isTyping, setIsTyping] = useState(false);
   
   // Streaming states
