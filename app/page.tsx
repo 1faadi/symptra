@@ -2,265 +2,341 @@
 
 import { useChat } from 'ai/react';
 import { useRef, useEffect, useState } from 'react';
-import { Send, Bot, Loader2, Stethoscope, Building2, Sparkles } from 'lucide-react';
+import { Send, Bot, Loader2, Building2, Sun, Moon } from 'lucide-react';
 
 export default function ChatPage() {
-  const [selectedDoc, setSelectedDoc] = useState('company-policy'); // Changed default to company-policy
+  const [selectedDoc] = useState('company-policy');
+  const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const {
-    messages,
-    input,
-    handleInputChange,
-    isLoading,
-    append,
-    setInput // Added setInput to clear the input
-  } = useChat();
+  const { messages, input, handleInputChange, isLoading, append, setInput } = useChat();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  
+  // Streaming states
+  const [streamingMessage, setStreamingMessage] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldBeDark = saved ? saved === 'dark' : prefersDark;
+    
+    setDarkMode(shouldBeDark);
+    
+    const htmlElement = document.documentElement;
+    if (shouldBeDark) {
+      htmlElement.classList.add('dark');
+    } else {
+      htmlElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', newDarkMode ? 'dark' : 'light');
+      
+      const htmlElement = document.documentElement;
+      if (newDarkMode) {
+        htmlElement.classList.add('dark');
+      } else {
+        htmlElement.classList.remove('dark');
+      }
+    }
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, streamingMessage]);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
-    if (input && errorMessage) {
-      setErrorMessage(null);
-    }
+    if (input && errorMessage) setErrorMessage(null);
   }, [input, errorMessage]);
 
-  // useEffect(() => {
-  //   setIsTyping(isLoading);
-  // }, [isLoading]);
+  // Word-by-word streaming function
+  const streamText = (fullText: string) => {
+    const words = fullText.split(' ');
+    let currentIndex = 0;
+    setStreamingMessage('');
+    setIsStreaming(true);
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
+    const streamNextWord = () => {
+      if (currentIndex < words.length) {
+        setStreamingMessage(prev => 
+          prev + (currentIndex > 0 ? ' ' : '') + words[currentIndex]
+        );
+        currentIndex++;
+        setTimeout(streamNextWord, 80); // Adjust speed here (80ms per word)
+      } else {
+        // Streaming complete, add to messages
+        setIsStreaming(false);
+        append({ role: 'assistant', content: fullText });
+        setStreamingMessage('');
+      }
+    };
+
+    streamNextWord();
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent, quickPrompt?: string) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    const content = (quickPrompt ?? input).trim();
+    if (!content) return;
 
-    const currentInput = input; // Store current input
     setErrorMessage(null);
     setIsTyping(true);
-
-    // Clear input immediately after submission
+    setStreamingMessage('');
+    setIsStreaming(false);
     setInput('');
 
-    // 1. Add user message immediately
-    await append({
-      role: 'user',
-      content: currentInput
-    });
+    // Add user message immediately
+    await append({ role: 'user', content });
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, { role: 'user', content: currentInput }],
-          selectedDoc
+          messages: [...messages, { role: 'user', content }],
+          selectedDoc: 'company-policy'
         })
       });
 
       if (!response.ok || !response.body) throw new Error('No response body');
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let done = false;
       let assistantMessage = '';
-
+      
       while (!done) {
         const { value, done: readerDone } = await reader.read();
         done = readerDone;
-        const chunk = decoder.decode(value);
-        assistantMessage += chunk;
+        if (value) assistantMessage += decoder.decode(value);
       }
-      setIsTyping(false)
-      await append({
-        role: 'assistant',
-        content: assistantMessage
-      });
+
+      setIsTyping(false);
+      
+      // Start word-by-word streaming
+      streamText(assistantMessage);
+
     } catch (err) {
       console.error('Chat error:', err);
       setErrorMessage('Something went wrong. Please try again.');
-    } finally {
       setIsTyping(false);
+      setIsStreaming(false);
     }
   };
 
   const isEmpty = messages.length === 0;
 
-  return (
-    <div className="flex flex-col h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 px-6 py-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-all duration-300">
-              <Bot className="w-7 h-7 text-white" />
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white animate-pulse"></div>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                {selectedDoc === 'company-policy' ? 'BXTrack Policy Guider' : 'Dengue Medical Assistant'}
-              </h1>
-              <p className="text-sm text-gray-600 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-amber-500" />
-                {selectedDoc === 'company-policy' 
-                  ? 'Your comprehensive guide to company policies & procedures'
-                  : 'Expert medical guidance for dengue-related queries'
-                }
-              </p>
-            </div>
-          </div>
+  const policyPrompts = [
+    'What are the company policies?',
+    'How do I submit a leave?',
+    'What is the code of conduct?',
+    'How do I submit complain to HR?'
+  ];
 
-          {/* Dropdown for knowledge source */}
-          <div className="relative">
-            <select
-              value={selectedDoc}
-              onChange={(e) => setSelectedDoc(e.target.value)}
-              className="appearance-none bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-medium text-gray-700 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-200 cursor-pointer"
-            >
-              <option value="company-policy">
-                🏢 Company Policy
-              </option>
-              <option value="dengue" className="flex items-center">
-                🦟 Dengue Specialist
-              </option>
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </div>
-        </div>
+  if (!mounted) return null;
+
+  return (
+    <div className="flex flex-col h-screen bg-white dark:bg-black text-gray-900 dark:text-white transition-colors">
+      {/* Header */}
+      <header className="flex items-center justify-center h-12 border-b border-gray-200 dark:border-gray-800 relative">
+        <h1 className="text-sm font-medium">BXTrack Policy Guider</h1>
+        
+        {/* <button
+          onClick={toggleDarkMode}
+          className="absolute right-4 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          aria-label="Toggle theme"
+        >
+          {darkMode ? (
+            <Sun className="w-4 h-4 text-yellow-500" />
+          ) : (
+            <Moon className="w-4 h-4 text-gray-600" />
+          )}
+        </button> */}
       </header>
 
-      {/* Messages display */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-        {isEmpty && (
-          <div className="text-center mt-20">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              {selectedDoc === 'company-policy' ? (
-                <Building2 className="w-10 h-10 text-blue-600" />
-              ) : (
-                <Stethoscope className="w-10 h-10 text-blue-600" />
-              )}
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-              How can I help you today?
-            </h2>
-            <p className="text-gray-500 max-w-md mx-auto">
-              Ask me about {selectedDoc === 'company-policy' ? 'company policies and procedures' : 'dengue symptoms, treatments, or prevention'}
-            </p>
-          </div>
-        )}
-        {messages.map((m, index) => (
-          <div
-            key={index}
-            className={`flex ${
-              m.role === 'user' ? 'justify-end' : 'justify-start'
-            } animate-in slide-in-from-bottom-2 duration-300`}
-          >
-            <div
-              className={`px-5 py-4 rounded-2xl max-w-2xl text-sm leading-relaxed shadow-sm transition-all duration-200 hover:shadow-md ${
-                m.role === 'user'
-                  ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-blue-500/20'
-                  : 'bg-white/90 backdrop-blur-sm text-gray-800 border border-gray-100'
-              }`}
-            >
-              {m.role === 'assistant' && (
-                <div className="flex items-center gap-2 mb-2 opacity-70">
-                  <Bot className="w-4 h-4" />
-                  <span className="text-xs font-medium">Assistant</span>
+      {/* Main chat area */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto">
+          <div className="max-w-3xl mx-auto px-4">
+            {/* Empty state */}
+            {isEmpty && !isStreaming && (
+              <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] py-8">
+                <div className="w-10 h-10 rounded-full bg-black dark:bg-white flex items-center justify-center mb-4">
+                  <Bot className="w-5 h-5 text-white dark:text-black" />
+                </div>
+                
+                <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                  How can I help you today?
+                </h2>
+                
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-8 text-center">
+                  Ask me about company policies and procedures
+                </p>
+
+                {/* Prompt cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
+                  {policyPrompts.map((prompt, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => handleFormSubmit(e, prompt)}
+                      className="p-4 text-left text-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Messages */}
+            <div className="py-8">
+              {messages.map((message, index) => (
+                <div key={index} className="mb-6 last:mb-0">
+                  {message.role === 'user' ? (
+                    <div className="flex justify-end">
+                      <div className="bg-black dark:bg-white text-white dark:text-black rounded-3xl px-5 py-3 max-w-[70%]">
+                        <p className="text-sm whitespace-pre-wrap">
+                          {message.content}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap leading-6">
+                          {message.content}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Streaming message */}
+              {isStreaming && (
+                <div className="mb-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap leading-6">
+                        {streamingMessage}
+                        <span className="animate-pulse">|</span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
-              <div className="whitespace-pre-wrap">{m.content}</div>
-            </div>
-          </div>
-        ))}
-        
-        {isTyping && (
-          <div className="flex justify-start animate-in slide-in-from-bottom-2 duration-300">
-            <div className="px-5 py-4 rounded-2xl bg-white/90 backdrop-blur-sm border border-gray-100 shadow-sm">
-              <div className="flex items-center gap-2 mb-2 opacity-70">
-                <Bot className="w-4 h-4" />
-                <span className="text-xs font-medium">Assistant</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+
+              {/* Thinking animation */}
+              {isTyping && (
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="flex-1 min-w-0 py-2">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-gray-400 dark:bg-gray-500 rounded-full animate-pulse" 
+                           style={{
+                             animation: 'chatgpt-thinking 1.4s ease-in-out infinite',
+                             transformOrigin: 'center'
+                           }}>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-sm">Thinking...</span>
-              </div>
+              )}
             </div>
+
+            <div ref={messagesEndRef} />
           </div>
-        )}
-        
-        <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      {/* Error Message */}
+      {/* Error message */}
       {errorMessage && (
-        <div className="mx-6 mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm animate-in slide-in-from-bottom-2 duration-300">
-          {errorMessage}
+        <div className="max-w-3xl mx-auto px-4 pb-4">
+          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
+            {errorMessage}
+          </div>
         </div>
       )}
 
-      {/* Input Area */}
-      <div className="border-t border-gray-200/50 bg-white/80 backdrop-blur-xl px-6 py-6">
-        <div className="flex gap-4">
-          <div className="flex-1 relative">
-            <input
-              ref={inputRef}
-              className="w-full px-6 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed pr-16 text-gray-800 placeholder-gray-500 bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 text-sm"
-              value={input}
-              onChange={handleInputChange}
-              placeholder={selectedDoc === 'company-policy' 
-                ? "Ask about company policies or procedures..." 
-                : "Ask about dengue symptoms, prevention, or treatment..."
-              }
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleFormSubmit(e);
-                }
-              }}
-              disabled={isLoading}
-              maxLength={500}
-            />
-            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs text-gray-400 font-medium">
-              {input.length}/500
+      {/* Input area */}
+      <div className="border-t border-gray-200 dark:border-gray-800 p-4">
+        <div className="max-w-3xl mx-auto">
+          <form className="relative" onSubmit={(e) => handleFormSubmit(e)}>
+            <div className="flex items-end gap-3">
+              <div className="flex-1">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={handleInputChange}
+                  placeholder="Message BXTrack Policy Guider"
+                  maxLength={500}
+                  disabled={isLoading || isStreaming}
+                  rows={1}
+                  className="w-full px-4 py-3 rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 resize-none transition-colors text-sm leading-6"
+                  style={{ minHeight: '48px', maxHeight: '200px' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleFormSubmit(e);
+                    }
+                  }}
+                />
+                <div className="absolute bottom-3 right-16 text-xs text-gray-400 dark:text-gray-500">
+                  {input.length}/500
+                </div>
+              </div>
+              
+              <button
+                type="submit"
+                disabled={isLoading || isStreaming || !input.trim()}
+                className="w-8 h-8 rounded-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:bg-gray-300 dark:disabled:bg-gray-700 flex items-center justify-center transition-colors flex-shrink-0 mb-2"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 text-white dark:text-black animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 text-white dark:text-black" />
+                )}
+              </button>
             </div>
-          </div>
-            <button
-              type="submit"
-              onClick={handleFormSubmit}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white px-8 py-4 rounded-2xl font-medium flex items-center gap-3 transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 active:scale-95 disabled:shadow-none disabled:scale-100"
-              disabled={isLoading || !input.trim()}
-            >
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-            <span className="hidden sm:inline">Send</span>
-            </button>
-        </div>
+          </form>
 
-        <div className="mt-4 text-center">
-          <p className="text-xs text-gray-500 flex items-center justify-center gap-2">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse inline-block"></span>
-            {selectedDoc === 'company-policy' ? 'BXTrack Policy Guider' : 'Dengue Medical Assistant'} • Always verify medical or policy info with the relevant authority
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
+            BXTrack Policy Guider can make mistakes. Check important info.
           </p>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes chatgpt-thinking {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.5;
+          }
+          50% {
+            transform: scale(1.5);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }
