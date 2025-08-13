@@ -253,9 +253,9 @@ export default function ChatPage() {
 
   const policyPrompts = [
     'What are the company vacation policies?',
-    'How do I submit an expense report?',
-    'What is the remote work policy?',
-    'How do I request time off?'
+    'What are the office timings?',
+    'What is the leave policy?',
+    'How do I file a complaint?',
   ];
 
   if (!mounted) return null;
@@ -392,39 +392,39 @@ export default function ChatPage() {
       <div className="border-t border-gray-200 dark:border-gray-800 p-4">
         <div className="max-w-3xl mx-auto">
           <form className="relative" onSubmit={(e) => handleFormSubmit(e)}>
-  <div className="relative flex items-center">
-    <textarea
-      ref={inputRef}
-      value={input}
-      onChange={handleInputChange}
-      placeholder="Message BXTrack Policy Guider"
-      maxLength={500}
-      disabled={isLoading || isStreaming}
-      rows={1}
-      className="w-full px-4 py-3 pr-12 rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 resize-none transition-colors text-sm leading-6"
-      style={{ minHeight: '48px', maxHeight: '200px' }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          handleFormSubmit(e);
-        }
-      }}
-    />
+            <div className="relative flex items-center">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={handleInputChange}
+                placeholder="Message BXTrack Policy Guider"
+                maxLength={500}
+                disabled={isLoading || isStreaming}
+                rows={1}
+                className="w-full px-4 py-3 pr-12 rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 resize-none transition-colors text-sm leading-6"
+                style={{ minHeight: '48px', maxHeight: '200px' }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleFormSubmit(e);
+                  }
+                }}
+              />
 
-    {/* Button positioned with flexbox centering */}
-    <button
-      type="submit"
-      disabled={isLoading || isStreaming || !input.trim()}
-      className="absolute right-2 w-9 h-9 rounded-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:bg-gray-300 dark:disabled:bg-gray-700 flex items-center justify-center transition-colors"
-    >
-      {isLoading ? (
-        <Loader2 className="w-4 h-4 text-white dark:text-black animate-spin" />
-      ) : (
-        <ArrowUp className="w-4 h-4 text-white dark:text-black" />
-      )}
-    </button>
-  </div>
-</form>
+              {/* Button positioned with flexbox centering */}
+              <button
+                type="submit"
+                disabled={isLoading || isStreaming || !input.trim()}
+                className="absolute right-2 w-9 h-9 rounded-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:bg-gray-300 dark:disabled:bg-gray-700 flex items-center justify-center transition-colors"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 text-white dark:text-black animate-spin" />
+                ) : (
+                  <ArrowUp className="w-4 h-4 text-white dark:text-black" />
+                )}
+              </button>
+            </div>
+          </form>
 
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
             BXTrack Policy Guider can make mistakes. Check important info.
