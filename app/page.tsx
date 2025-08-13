@@ -3,6 +3,7 @@
 import { useChat } from 'ai/react';
 import { useRef, useEffect, useState } from 'react';
 import { Send, Bot, Loader2, Building2, Sun, Moon } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 export default function ChatPage() {
   const [selectedDoc] = useState('company-policy');
@@ -11,9 +12,9 @@ export default function ChatPage() {
 
   const { messages, input, handleInputChange, isLoading, append, setInput } = useChat();
 
-const messagesEndRef = useRef<HTMLDivElement>(null);
-const inputRef = useRef<HTMLTextAreaElement>(null); // ← Fixed type
-const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [isTyping, setIsTyping] = useState(false);
   
@@ -25,6 +26,7 @@ const [errorMessage, setErrorMessage] = useState<string | null>(null);
     setMounted(true);
   }, []);
 
+  // Dark mode initialization
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -145,13 +147,122 @@ const [errorMessage, setErrorMessage] = useState<string | null>(null);
     }
   };
 
+  // Fixed markdown components with proper TypeScript types
+  const markdownComponents = {
+    // Bold text
+    strong: ({ children, ...props }: React.ComponentProps<'strong'>) => (
+      <span className="font-bold text-gray-900 dark:text-white" {...props}>
+        {children}
+      </span>
+    ),
+    // Italic text
+    em: ({ children, ...props }: React.ComponentProps<'em'>) => (
+      <span className="italic text-gray-800 dark:text-gray-200" {...props}>
+        {children}
+      </span>
+    ),
+    // Paragraphs
+    p: ({ children, ...props }: React.ComponentProps<'p'>) => (
+      <p className="mb-3 last:mb-0 leading-relaxed" {...props}>
+        {children}
+      </p>
+    ),
+    // Headings
+    h1: ({ children, ...props }: React.ComponentProps<'h1'>) => (
+      <h1 className="text-lg font-bold mb-3 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-1" {...props}>
+        {children}
+      </h1>
+    ),
+    h2: ({ children, ...props }: React.ComponentProps<'h2'>) => (
+      <h2 className="text-base font-bold mb-2 text-gray-900 dark:text-white" {...props}>
+        {children}
+      </h2>
+    ),
+    h3: ({ children, ...props }: React.ComponentProps<'h3'>) => (
+      <h3 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200" {...props}>
+        {children}
+      </h3>
+    ),
+    // Lists
+    ul: ({ children, ...props }: React.ComponentProps<'ul'>) => (
+      <ul className="list-disc list-inside mb-3 space-y-1 ml-4" {...props}>
+        {children}
+      </ul>
+    ),
+    ol: ({ children, ...props }: React.ComponentProps<'ol'>) => (
+      <ol className="list-decimal list-inside mb-3 space-y-1 ml-4" {...props}>
+        {children}
+      </ol>
+    ),
+    li: ({ children, ...props }: React.ComponentProps<'li'>) => (
+      <li className="text-gray-900 dark:text-white" {...props}>
+        {children}
+      </li>
+    ),
+    // Code blocks
+    code: ({ children, className, ...props }: React.ComponentProps<'code'>) => {
+      const isInline = !className;
+      if (isInline) {
+        return (
+          <code className="bg-gray-100 dark:bg-gray-800 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+            {children}
+          </code>
+        );
+      }
+      return (
+        <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg mb-3 overflow-x-auto">
+          <code className="text-sm font-mono text-gray-900 dark:text-white" {...props}>
+            {children}
+          </code>
+        </pre>
+      );
+    },
+    // Blockquotes
+    blockquote: ({ children, ...props }: React.ComponentProps<'blockquote'>) => (
+      <blockquote className="border-l-4 border-blue-500 pl-4 py-2 mb-3 bg-blue-50 dark:bg-blue-900/20 italic" {...props}>
+        {children}
+      </blockquote>
+    ),
+    // Tables
+    table: ({ children, ...props }: React.ComponentProps<'table'>) => (
+      <div className="overflow-x-auto mb-3">
+        <table className="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg" {...props}>
+          {children}
+        </table>
+      </div>
+    ),
+    thead: ({ children, ...props }: React.ComponentProps<'thead'>) => (
+      <thead className="bg-gray-50 dark:bg-gray-800" {...props}>
+        {children}
+      </thead>
+    ),
+    tbody: ({ children, ...props }: React.ComponentProps<'tbody'>) => (
+      <tbody className="divide-y divide-gray-200 dark:divide-gray-700" {...props}>
+        {children}
+      </tbody>
+    ),
+    tr: ({ children, ...props }: React.ComponentProps<'tr'>) => (
+      <tr {...props}>{children}</tr>
+    ),
+    td: ({ children, ...props }: React.ComponentProps<'td'>) => (
+      <td className="px-4 py-2 text-sm border-r border-gray-200 dark:border-gray-700 last:border-r-0" {...props}>
+        {children}
+      </td>
+    ),
+    th: ({ children, ...props }: React.ComponentProps<'th'>) => (
+      <th className="px-4 py-2 text-sm font-semibold text-left border-r border-gray-200 dark:border-gray-700 last:border-r-0" {...props}>
+        {children}
+      </th>
+    ),
+  };
+
   const isEmpty = messages.length === 0;
 
   const policyPrompts = [
-    'What are the company policies?',
-    'How do I submit a leave?',
-    'What is the code of conduct?',
-    'How do I submit complain to HR?'
+    'What are the company vacation policies?',
+    'How do I submit an expense report?',
+    'What is the remote work policy?',
+    'How do I request time off?'
   ];
 
   if (!mounted) return null;
@@ -162,7 +273,7 @@ const [errorMessage, setErrorMessage] = useState<string | null>(null);
       <header className="flex items-center justify-center h-12 border-b border-gray-200 dark:border-gray-800 relative">
         <h1 className="text-sm font-medium">BXTrack Policy Guider</h1>
         
-        {/* <button
+        <button
           onClick={toggleDarkMode}
           className="absolute right-4 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           aria-label="Toggle theme"
@@ -172,7 +283,7 @@ const [errorMessage, setErrorMessage] = useState<string | null>(null);
           ) : (
             <Moon className="w-4 h-4 text-gray-600" />
           )}
-        </button> */}
+        </button>
       </header>
 
       {/* Main chat area */}
@@ -224,9 +335,12 @@ const [errorMessage, setErrorMessage] = useState<string | null>(null);
                   ) : (
                     <div className="flex items-start gap-4">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap leading-6">
-                          {message.content}
-                        </p>
+                        {/* Enhanced markdown rendering for assistant messages */}
+                        <div className="text-sm leading-6 prose prose-sm max-w-none dark:prose-invert">
+                          <ReactMarkdown components={markdownComponents}>
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -238,10 +352,13 @@ const [errorMessage, setErrorMessage] = useState<string | null>(null);
                 <div className="mb-6">
                   <div className="flex items-start gap-4">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap leading-6">
-                        {streamingMessage}
-                        <span className="animate-pulse">|</span>
-                      </p>
+                      {/* Enhanced markdown rendering for streaming */}
+                      <div className="text-sm leading-6 prose prose-sm max-w-none dark:prose-invert">
+                        <ReactMarkdown components={markdownComponents}>
+                          {streamingMessage}
+                        </ReactMarkdown>
+                        <span className="animate-pulse text-gray-500">|</span>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -3,9 +3,8 @@ import pdf from 'pdf-parse';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { QdrantVectorStore } from '@langchain/community/vectorstores/qdrant';
 import { QdrantClient } from '@qdrant/js-client-rest';
+import { OpenAIEmbeddings } from '@langchain/openai';
 import 'dotenv/config';
-
-import { TogetherBGEEmbeddings } from '../lib/embeddings/bgeTogetherEmbeddings'; // ✅ custom embedding class
 
 async function loadAndStorePDF(filename: string) {
   const filePath = `vectorstore/${filename}`;
@@ -17,6 +16,21 @@ async function loadAndStorePDF(filename: string) {
   }
 
   console.log(`📄 Loading: ${filePath} into collection: "${collectionName}"`);
+
+  // ✅ Delete existing collection first
+  const client = new QdrantClient({
+    url: process.env.QDRANT_URL!,
+    apiKey: process.env.QDRANT_API_KEY!,
+  });
+
+  try {
+    await client.deleteCollection(collectionName);
+    console.log(`🗑️ Deleted existing collection: "${collectionName}"`);
+  } catch (error: any) {
+    if (!error.message?.includes('Not found')) {
+      console.log(`ℹ️ Collection "${collectionName}" doesn't exist yet`);
+    }
+  }
 
   const dataBuffer = fs.readFileSync(filePath);
   const pdfData = await pdf(dataBuffer);
@@ -32,14 +46,9 @@ async function loadAndStorePDF(filename: string) {
   console.log(`✂️ Split into ${docs.length} chunks`);
   console.log("🧩 Sample chunk:", docs[0]?.pageContent.slice(0, 200));
 
-  const embeddings = new TogetherBGEEmbeddings({
-    apiKey: process.env.TOGETHER_API_KEY!,
-    model: 'BAAI/bge-large-en-v1.5',
-  });
-
-  const client = new QdrantClient({
-    url: process.env.QDRANT_URL!,
-    apiKey: process.env.QDRANT_API_KEY!,
+  const embeddings = new OpenAIEmbeddings({
+    modelName: "text-embedding-3-small",
+    openAIApiKey: process.env.OPENAI_API_KEY!,
   });
 
   await QdrantVectorStore.fromDocuments(docs, embeddings, {
