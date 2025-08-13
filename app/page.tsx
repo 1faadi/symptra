@@ -2,8 +2,9 @@
 
 import { useChat } from 'ai/react';
 import { useRef, useEffect, useState } from 'react';
-import { Send, Bot, Loader2, Building2, Sun, Moon } from 'lucide-react';
+import { Send, Bot, Loader2, Building2, Sun, Moon, ArrowUp } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import type { Components } from 'react-markdown';
 
 export default function ChatPage() {
   const [selectedDoc] = useState('company-policy');
@@ -17,7 +18,7 @@ export default function ChatPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [isTyping, setIsTyping] = useState(false);
-  
+
   // Streaming states
   const [streamingMessage, setStreamingMessage] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -29,13 +30,13 @@ export default function ChatPage() {
   // Dark mode initialization
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     const saved = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const shouldBeDark = saved ? saved === 'dark' : prefersDark;
-    
+
     setDarkMode(shouldBeDark);
-    
+
     const htmlElement = document.documentElement;
     if (shouldBeDark) {
       htmlElement.classList.add('dark');
@@ -47,10 +48,10 @@ export default function ChatPage() {
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
-    
+
     if (typeof window !== 'undefined') {
       localStorage.setItem('theme', newDarkMode ? 'dark' : 'light');
-      
+
       const htmlElement = document.documentElement;
       if (newDarkMode) {
         htmlElement.classList.add('dark');
@@ -81,7 +82,7 @@ export default function ChatPage() {
 
     const streamNextWord = () => {
       if (currentIndex < words.length) {
-        setStreamingMessage(prev => 
+        setStreamingMessage(prev =>
           prev + (currentIndex > 0 ? ' ' : '') + words[currentIndex]
         );
         currentIndex++;
@@ -127,7 +128,7 @@ export default function ChatPage() {
       const decoder = new TextDecoder();
       let done = false;
       let assistantMessage = '';
-      
+
       while (!done) {
         const { value, done: readerDone } = await reader.read();
         done = readerDone;
@@ -135,7 +136,7 @@ export default function ChatPage() {
       }
 
       setIsTyping(false);
-      
+
       // Start word-by-word streaming
       streamText(assistantMessage);
 
@@ -147,60 +148,54 @@ export default function ChatPage() {
     }
   };
 
-  // Fixed markdown components with proper TypeScript types
-  const markdownComponents = {
-    // Bold text
-    strong: ({ children, ...props }: React.ComponentProps<'strong'>) => (
+  // Properly typed markdown components
+  const markdownComponents: Components = {
+    strong: ({ children, ...props }) => (
       <span className="font-bold text-gray-900 dark:text-white" {...props}>
         {children}
       </span>
     ),
-    // Italic text
-    em: ({ children, ...props }: React.ComponentProps<'em'>) => (
+    em: ({ children, ...props }) => (
       <span className="italic text-gray-800 dark:text-gray-200" {...props}>
         {children}
       </span>
     ),
-    // Paragraphs
-    p: ({ children, ...props }: React.ComponentProps<'p'>) => (
+    p: ({ children, ...props }) => (
       <p className="mb-3 last:mb-0 leading-relaxed" {...props}>
         {children}
       </p>
     ),
-    // Headings
-    h1: ({ children, ...props }: React.ComponentProps<'h1'>) => (
+    h1: ({ children, ...props }) => (
       <h1 className="text-lg font-bold mb-3 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-1" {...props}>
         {children}
       </h1>
     ),
-    h2: ({ children, ...props }: React.ComponentProps<'h2'>) => (
+    h2: ({ children, ...props }) => (
       <h2 className="text-base font-bold mb-2 text-gray-900 dark:text-white" {...props}>
         {children}
       </h2>
     ),
-    h3: ({ children, ...props }: React.ComponentProps<'h3'>) => (
+    h3: ({ children, ...props }) => (
       <h3 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200" {...props}>
         {children}
       </h3>
     ),
-    // Lists
-    ul: ({ children, ...props }: React.ComponentProps<'ul'>) => (
+    ul: ({ children, ...props }) => (
       <ul className="list-disc list-inside mb-3 space-y-1 ml-4" {...props}>
         {children}
       </ul>
     ),
-    ol: ({ children, ...props }: React.ComponentProps<'ol'>) => (
+    ol: ({ children, ...props }) => (
       <ol className="list-decimal list-inside mb-3 space-y-1 ml-4" {...props}>
         {children}
       </ol>
     ),
-    li: ({ children, ...props }: React.ComponentProps<'li'>) => (
+    li: ({ children, ...props }) => (
       <li className="text-gray-900 dark:text-white" {...props}>
         {children}
       </li>
     ),
-    // Code blocks
-    code: ({ children, className, ...props }: React.ComponentProps<'code'>) => {
+    code: ({ children, className, ...props }) => {
       const isInline = !className;
       if (isInline) {
         return (
@@ -217,39 +212,37 @@ export default function ChatPage() {
         </pre>
       );
     },
-    // Blockquotes
-    blockquote: ({ children, ...props }: React.ComponentProps<'blockquote'>) => (
+    blockquote: ({ children, ...props }) => (
       <blockquote className="border-l-4 border-blue-500 pl-4 py-2 mb-3 bg-blue-50 dark:bg-blue-900/20 italic" {...props}>
         {children}
       </blockquote>
     ),
-    // Tables
-    table: ({ children, ...props }: React.ComponentProps<'table'>) => (
+    table: ({ children, ...props }) => (
       <div className="overflow-x-auto mb-3">
         <table className="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg" {...props}>
           {children}
         </table>
       </div>
     ),
-    thead: ({ children, ...props }: React.ComponentProps<'thead'>) => (
+    thead: ({ children, ...props }) => (
       <thead className="bg-gray-50 dark:bg-gray-800" {...props}>
         {children}
       </thead>
     ),
-    tbody: ({ children, ...props }: React.ComponentProps<'tbody'>) => (
+    tbody: ({ children, ...props }) => (
       <tbody className="divide-y divide-gray-200 dark:divide-gray-700" {...props}>
         {children}
       </tbody>
     ),
-    tr: ({ children, ...props }: React.ComponentProps<'tr'>) => (
+    tr: ({ children, ...props }) => (
       <tr {...props}>{children}</tr>
     ),
-    td: ({ children, ...props }: React.ComponentProps<'td'>) => (
+    td: ({ children, ...props }) => (
       <td className="px-4 py-2 text-sm border-r border-gray-200 dark:border-gray-700 last:border-r-0" {...props}>
         {children}
       </td>
     ),
-    th: ({ children, ...props }: React.ComponentProps<'th'>) => (
+    th: ({ children, ...props }) => (
       <th className="px-4 py-2 text-sm font-semibold text-left border-r border-gray-200 dark:border-gray-700 last:border-r-0" {...props}>
         {children}
       </th>
@@ -272,7 +265,7 @@ export default function ChatPage() {
       {/* Header */}
       <header className="flex items-center justify-center h-12 border-b border-gray-200 dark:border-gray-800 relative">
         <h1 className="text-sm font-medium">BXTrack Policy Guider</h1>
-        
+
         <button
           onClick={toggleDarkMode}
           className="absolute right-4 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -296,11 +289,11 @@ export default function ChatPage() {
                 <div className="w-10 h-10 rounded-full bg-black dark:bg-white flex items-center justify-center mb-4">
                   <Bot className="w-5 h-5 text-white dark:text-black" />
                 </div>
-                
+
                 <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
                   How can I help you today?
                 </h2>
-                
+
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-8 text-center">
                   Ask me about company policies and procedures
                 </p>
@@ -369,11 +362,11 @@ export default function ChatPage() {
                 <div className="flex items-start gap-4 mb-6">
                   <div className="flex-1 min-w-0 py-2">
                     <div className="flex items-center">
-                      <div className="w-3 h-3 bg-gray-400 dark:bg-gray-500 rounded-full animate-pulse" 
-                           style={{
-                             animation: 'chatgpt-thinking 1.4s ease-in-out infinite',
-                             transformOrigin: 'center'
-                           }}>
+                      <div className="w-3 h-3 bg-gray-400 dark:bg-gray-500 rounded-full animate-pulse"
+                        style={{
+                          animation: 'chatgpt-thinking 1.4s ease-in-out infinite',
+                          transformOrigin: 'center'
+                        }}>
                       </div>
                     </div>
                   </div>
@@ -399,43 +392,39 @@ export default function ChatPage() {
       <div className="border-t border-gray-200 dark:border-gray-800 p-4">
         <div className="max-w-3xl mx-auto">
           <form className="relative" onSubmit={(e) => handleFormSubmit(e)}>
-            <div className="flex items-end gap-3">
-              <div className="flex-1">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={handleInputChange}
-                  placeholder="Message BXTrack Policy Guider"
-                  maxLength={500}
-                  disabled={isLoading || isStreaming}
-                  rows={1}
-                  className="w-full px-4 py-3 rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 resize-none transition-colors text-sm leading-6"
-                  style={{ minHeight: '48px', maxHeight: '200px' }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleFormSubmit(e);
-                    }
-                  }}
-                />
-                <div className="absolute bottom-3 right-16 text-xs text-gray-400 dark:text-gray-500">
-                  {input.length}/500
-                </div>
-              </div>
-              
-              <button
-                type="submit"
-                disabled={isLoading || isStreaming || !input.trim()}
-                className="w-8 h-8 rounded-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:bg-gray-300 dark:disabled:bg-gray-700 flex items-center justify-center transition-colors flex-shrink-0 mb-2"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 text-white dark:text-black animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4 text-white dark:text-black" />
-                )}
-              </button>
-            </div>
-          </form>
+  <div className="relative flex items-center">
+    <textarea
+      ref={inputRef}
+      value={input}
+      onChange={handleInputChange}
+      placeholder="Message BXTrack Policy Guider"
+      maxLength={500}
+      disabled={isLoading || isStreaming}
+      rows={1}
+      className="w-full px-4 py-3 pr-12 rounded-3xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 resize-none transition-colors text-sm leading-6"
+      style={{ minHeight: '48px', maxHeight: '200px' }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleFormSubmit(e);
+        }
+      }}
+    />
+
+    {/* Button positioned with flexbox centering */}
+    <button
+      type="submit"
+      disabled={isLoading || isStreaming || !input.trim()}
+      className="absolute right-2 w-9 h-9 rounded-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 disabled:bg-gray-300 dark:disabled:bg-gray-700 flex items-center justify-center transition-colors"
+    >
+      {isLoading ? (
+        <Loader2 className="w-4 h-4 text-white dark:text-black animate-spin" />
+      ) : (
+        <ArrowUp className="w-4 h-4 text-white dark:text-black" />
+      )}
+    </button>
+  </div>
+</form>
 
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
             BXTrack Policy Guider can make mistakes. Check important info.
