@@ -73,30 +73,25 @@ export default function ChatPage() {
     if (input && errorMessage) setErrorMessage(null);
   }, [input, errorMessage]);
 
-  // ✅ Fixed word-by-word streaming function
+  // ✅ Clean streaming function without cursor
   const streamText = (fullText: string) => {
     const words = fullText.split(' ');
     let currentIndex = 0;
-    setStreamingMessage(''); // Clear any previous streaming message
+    setStreamingMessage('');
     setIsStreaming(true);
 
     const streamNextWord = () => {
       if (currentIndex < words.length) {
-        // ✅ Build message progressively, ensuring first word is included
+        // ✅ Build message progressively - no cursor needed
         const currentMessage = words.slice(0, currentIndex + 1).join(' ');
         setStreamingMessage(currentMessage);
         currentIndex++;
         setTimeout(streamNextWord, 80);
       } else {
-        // ✅ Clean transition: First clear streaming, then add final message
-        setTimeout(() => {
-          setIsStreaming(false);
-          setStreamingMessage(''); // Clear streaming message first
-          // ✅ Add final message after clearing streaming state
-          setTimeout(() => {
-            append({ role: 'assistant', content: fullText });
-          }, 50); // Small delay to ensure clean state transition
-        }, 100);
+        // ✅ Simple finish - just add to messages and clear streaming
+        setIsStreaming(false);
+        setStreamingMessage('');
+        append({ role: 'assistant', content: fullText });
       }
     };
 
@@ -110,7 +105,7 @@ export default function ChatPage() {
 
     setErrorMessage(null);
     setIsTyping(true);
-    setStreamingMessage(''); // ✅ Clear any previous streaming message
+    setStreamingMessage('');
     setIsStreaming(false);
     setInput('');
 
@@ -142,10 +137,8 @@ export default function ChatPage() {
 
       setIsTyping(false);
 
-      // ✅ Ensure clean state before starting stream
-      setTimeout(() => {
-        streamText(assistantMessage);
-      }, 100);
+      // ✅ Start streaming
+      streamText(assistantMessage);
 
     } catch (err) {
       console.error('Chat error:', err);
@@ -335,7 +328,6 @@ export default function ChatPage() {
                   ) : (
                     <div className="flex items-start gap-4">
                       <div className="flex-1 min-w-0">
-                        {/* Enhanced markdown rendering for assistant messages */}
                         <div className="text-sm leading-6 prose prose-sm max-w-none dark:prose-invert">
                           <ReactMarkdown components={markdownComponents}>
                             {message.content}
@@ -347,17 +339,15 @@ export default function ChatPage() {
                 </div>
               ))}
 
-              {/* ✅ Fixed streaming message rendering */}
+              {/* ✅ Clean streaming message without cursor */}
               {isStreaming && streamingMessage && (
                 <div className="mb-6">
                   <div className="flex items-start gap-4">
                     <div className="flex-1 min-w-0">
-                      {/* Enhanced markdown rendering for streaming */}
                       <div className="text-sm leading-6 prose prose-sm max-w-none dark:prose-invert">
                         <ReactMarkdown components={markdownComponents}>
                           {streamingMessage}
                         </ReactMarkdown>
-                        <span className="animate-pulse text-gray-500 ml-1">|</span>
                       </div>
                     </div>
                   </div>
@@ -418,7 +408,6 @@ export default function ChatPage() {
                 }}
               />
 
-              {/* Button positioned with flexbox centering */}
               <button
                 type="submit"
                 disabled={isLoading || isStreaming || !input.trim()}
