@@ -73,25 +73,30 @@ export default function ChatPage() {
     if (input && errorMessage) setErrorMessage(null);
   }, [input, errorMessage]);
 
-  // Word-by-word streaming function
+  // ✅ Fixed word-by-word streaming function
   const streamText = (fullText: string) => {
     const words = fullText.split(' ');
     let currentIndex = 0;
-    setStreamingMessage('');
+    setStreamingMessage(''); // Clear any previous streaming message
     setIsStreaming(true);
 
     const streamNextWord = () => {
       if (currentIndex < words.length) {
-        setStreamingMessage(prev =>
-          prev + (currentIndex > 0 ? ' ' : '') + words[currentIndex]
-        );
+        // ✅ Build message progressively, ensuring first word is included
+        const currentMessage = words.slice(0, currentIndex + 1).join(' ');
+        setStreamingMessage(currentMessage);
         currentIndex++;
-        setTimeout(streamNextWord, 80); // Adjust speed here (80ms per word)
+        setTimeout(streamNextWord, 80);
       } else {
-        // Streaming complete, add to messages
-        setIsStreaming(false);
-        append({ role: 'assistant', content: fullText });
-        setStreamingMessage('');
+        // ✅ Clean transition: First clear streaming, then add final message
+        setTimeout(() => {
+          setIsStreaming(false);
+          setStreamingMessage(''); // Clear streaming message first
+          // ✅ Add final message after clearing streaming state
+          setTimeout(() => {
+            append({ role: 'assistant', content: fullText });
+          }, 50); // Small delay to ensure clean state transition
+        }, 100);
       }
     };
 
@@ -105,7 +110,7 @@ export default function ChatPage() {
 
     setErrorMessage(null);
     setIsTyping(true);
-    setStreamingMessage('');
+    setStreamingMessage(''); // ✅ Clear any previous streaming message
     setIsStreaming(false);
     setInput('');
 
@@ -137,8 +142,10 @@ export default function ChatPage() {
 
       setIsTyping(false);
 
-      // Start word-by-word streaming
-      streamText(assistantMessage);
+      // ✅ Ensure clean state before starting stream
+      setTimeout(() => {
+        streamText(assistantMessage);
+      }, 100);
 
     } catch (err) {
       console.error('Chat error:', err);
@@ -340,8 +347,8 @@ export default function ChatPage() {
                 </div>
               ))}
 
-              {/* Streaming message */}
-              {isStreaming && (
+              {/* ✅ Fixed streaming message rendering */}
+              {isStreaming && streamingMessage && (
                 <div className="mb-6">
                   <div className="flex items-start gap-4">
                     <div className="flex-1 min-w-0">
@@ -350,7 +357,7 @@ export default function ChatPage() {
                         <ReactMarkdown components={markdownComponents}>
                           {streamingMessage}
                         </ReactMarkdown>
-                        <span className="animate-pulse text-gray-500">|</span>
+                        <span className="animate-pulse text-gray-500 ml-1">|</span>
                       </div>
                     </div>
                   </div>
@@ -358,7 +365,7 @@ export default function ChatPage() {
               )}
 
               {/* Thinking animation */}
-              {isTyping && (
+              {isTyping && !isStreaming && (
                 <div className="flex items-start gap-4 mb-6">
                   <div className="flex-1 min-w-0 py-2">
                     <div className="flex items-center">

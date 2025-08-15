@@ -1,0 +1,203 @@
+{
+  "lastUpdated": "2025-08-15",
+  "companyInfo": {
+    "name": "BXTrack Solutions",
+    "totalEmployees": 20,
+    "departments": ["Executive", "HR", "Engineering"]
+  },
+  "team": {
+    "executives": [
+      {
+        "id": "EXE-001",
+        "name": "Muhammad Umer Sheikh", 
+        "designation": "Chief Executive Officer (CEO)",
+        "email": "N/A",
+        "phone": "N/A",
+        "department": "Executive",
+        "joiningDate": "N/A",
+        "responsibilities": ["Overall Strategy", "Leadership", "Board Relations", "Major Decisions"]
+      },
+      {
+        "id": "EXE-002", 
+        "name": "Muhammad Usman",
+        "designation": "Chief Operating Officer (COO)",
+        "email": "usman@bxtrack.com", 
+        "phone": "+92-300-5301322",
+        "department": "Executive",
+        "joiningDate": "2020-06-14",
+        "responsibilities": ["Daily Operations", "Process Management", "Team Coordination"]
+      }
+    ],
+    "hr": [
+      {
+        "id": "HR-001",
+        "name": "Attiqa Shahzadi",
+        "designation": "HR Manager | QA Engineer | Project Moderator", 
+        "email": "hr@bxtrack.com",
+        "phone": "+92-313-5128889",
+        "department": "Human Resources",
+        "joiningDate": "2022-09-26",
+        "responsibilities": ["Employee Relations", "Recruitment", "Policy Management", "Payroll"]
+      }
+    ],
+    "engineering": {
+      "teamLead": {
+        "id": "ENG-001",
+        "name": "Arslan Chaudhary",
+        "designation": "Engineering Team Lead",
+        "email": "arslanchaudhary60@gmail.com",
+        "phone": "+92-310-9362969", 
+        "department": "Engineering",
+        "joiningDate": "2021-08-23",
+        "responsibilities": ["Technical Leadership", "Code Reviews", "Architecture", "Team Management"]
+      },
+      "developers": [
+        {
+          "id": "DEV-001",
+          "name": "Shameer Zahid",
+          "designation": "Software Engineer",
+          "email": "shameerzahid11@gmail.com",
+          "phone": "+92-331-05232553",
+          "department": "Engineering", 
+          "joiningDate": "2023-12-03",
+          "skills": ["React", "Node.js", "PostgreSQL"]
+        },
+        {
+          "id": "DEV-002", 
+          "name": "Syed Fahad Abbas",
+          "designation": "AI Developer",
+          "email": "fahadnshuu1@gmail.com",
+          "phone": "+92-304-1646924",
+          "department": "Engineering",
+          "joiningDate": "2023-07-01", 
+          "skills": ["React", "TypeScript", "CSS"]
+        },
+        {
+          "id": "DEV-003",
+          "name": "Abdul Mannan",
+          "designation": "Project Manager", 
+          "email": "abdulmanan0677@gmail.com",
+          "phone": "+92-308-1030677",
+          "department": "Engineering",
+          "joiningDate": "2025-01-09",
+          "skills": "N/A"
+        },
+        {
+          "id": "DEV-004",
+          "name": "Abdul Rehman",
+          "designation": "Mid Level Developer",
+          "email": "abdulrehmanmangral331@gmail.com", 
+          "phone": "+92-318-5021995",
+          "department": "Engineering",
+          "joiningDate": "2025-07-28",
+          "skills": ["React", "Node.js", "PostgreSQL"]
+        },
+        {
+          "id": "DEV-005",
+          "name": "Alina Saqib",
+          "designation": "Software Engineer",
+          "email": "alina.saqib500@gmail.com",
+          "phone": "+92-315-5795930",
+          "department": "Engineering", 
+          "joiningDate": "2024-03-01",
+          "skills": ["React", "Node.js", "PostgreSQL"]
+        },
+        {
+          "id": "DEV-006",
+          "name": "Alishba Saif",
+          "designation": "Backend Developer",
+          "email": "alishba.saif2002@gmail.com",
+          "phone": "N/A", 
+          "department": "Engineering",
+          "joiningDate": "2025-05-12",
+          "skills": ["Nest.js", "Node.js", "PostgreSQL"]
+        },
+        {
+          "id": "DEV-007", 
+          "name": "Aneeb Ur Rehman",
+          "designation": "SQA Intern",
+          "email": "aneeb.rehmanj7@gmail.com",
+          "phone": "+92-336-8862917",
+          "department": "Engineering",
+          "joiningDate": "2025-05-12",
+          "skills": ["React Native", "Flutter", "iOS"]
+        },
+        {
+          "id": "DEV-008",
+          "name": "Bilal Ahmad", 
+          "designation": "Associate Software Engineer/ CodeSculptor",
+          "email": "bilalahmadmadakhail@gmail.com",
+          "phone": "+92-343-8640370",
+          "department": "Engineering",
+          "joiningDate": "2023-10-10",
+          "skills": ["Vue.js", "JavaScript", "SASS"]
+        },
+        {
+          "id": "DEV-009",
+          "name": "Hassan Khan",
+          "designation": "Web Intern",
+          "email": "hk20051229@gmail.com",
+          "phone": "N/A",
+          "department": "Engineering",
+          "joiningDate": "N/A", 
+          "skills": "N/A"
+        },
+        {
+          "id": "DEV-010",
+          "name": "Ibraheem Shafi",
+          "designation": "MERN Stack Developer",
+          "email": "ibraheem45622@gmail.com",
+          "phone": "+92-369-701396",
+          "department": "Engineering",
+          "joiningDate": "2025-01-13",
+          "skills": ["Python", "Pandas", "Power BI"]
+        },
+        {
+          "id": "DEV-011", 
+          "name": "FMuhammad Haseeb Ali",
+          "designation": "Software Engineer",
+          "email": "haseeb.aha786@gmail.com",
+          "phone": "+92-311-7522354",
+          "department": "Engineering",
+          "joiningDate": "2024-06-17",
+          "skills": ["MERN Stack", "GraphQL", "Redis"]
+        },
+        {
+          "id": "DEV-012",
+          "name": "Muhammad Usman",
+          "designation": "Web Developer", 
+          "email": "musman38302@gmail.com",
+          "phone": "+92-310-5622445",
+          "department": "Engineering",
+          "joiningDate": "2025-01-01",
+          "skills": ["Angular", "TypeScript", "Bootstrap"]
+        },
+        {
+          "id": "DEV-013",
+          "name": "Uzair",
+          "designation": "Web Developer",
+          "email": "uzair.wahid123@gmail.com",
+          "phone": "N/A",
+          "department": "Engineering",
+          "joiningDate": "N/A", 
+          "skills": "N/A"
+        },
+        {
+          "id": "DEV-014",
+          "name": "Vishal Arif",
+          "designation": "Software Engineer",
+          "email": "vishalarif50@gmail.com",
+          "phone": "+92-306-5506653",
+          "department": "Engineering",
+          "joiningDate": "2025-04-01",
+          "skills": ["JavaScript", "HTML/CSS", "Git"]
+        }
+      ]
+    }
+  },
+  "contactInfo": {
+    "mainOffice": "+92-42-1234567",
+    "hrHelpline": "+92-300-3456789",
+    "emergencyContact": "+92-300-1234567"
+  }
+}
